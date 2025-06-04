@@ -8,8 +8,10 @@ import { AuthContext } from './context/AuthProvider';
 function App() {
   const [user, setUser] = useState(null);
   const [loggedInEmployee, setLoggedInEmployee] = useState(null);
-  const authData = useContext(AuthContext);
+  const [loggedInEmployeeId, setLoggedInEmployeeId] = useState(null);
+  const [authData,setAuthData] = useContext(AuthContext);
 
+  
   // On mount, check if user is already logged in
   useEffect(() => {
     const loggedInUser = localStorage.getItem('loggedInUser');
@@ -19,7 +21,7 @@ function App() {
         setUser('admin');
       } else if (userData.role === 'employee') {
         setUser('employee');
-        setLoggedInEmployee(userData.data);
+        setLoggedInEmployeeId(userData.data.id); // <-- set ID here
       }
     }
   }, []);
@@ -50,18 +52,21 @@ function App() {
       );
       setUser('employee');
       setLoggedInEmployee(employee);
+      setLoggedInEmployeeId(employee.id);
       localStorage.setItem('loggedInUser', JSON.stringify({ role: 'employee', data: employee }));
     } else {
       alert('Invalid credentials');
     }
   };
 
+  const currentEmployee = authData.employees?.find(e => e.id === loggedInEmployeeId);
+
   return (
     <div>
       {!user && <Login handleLogin={handleLogin} />}
-      {user === 'admin' && <AdminDashboard />}
-      {user === 'employee' && loggedInEmployee && (
-        <Employeedashboard employee={loggedInEmployee} />
+      {user === 'admin' && <AdminDashboard changeUser={setUser}/>}
+      {user === 'employee' && currentEmployee && (
+        <Employeedashboard changeUser={setUser} employee={currentEmployee} />
       )}
     </div>
   );
